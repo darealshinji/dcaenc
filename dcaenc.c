@@ -33,7 +33,7 @@
 dcaenc_context dcaenc_create(int sample_rate, int channel_config,
                              int approx_bitrate, int flags)
 {
-	int i, frame_bits, bit_step, fir;
+	int i, frame_bits, bit_step, fir, useful_bitrate;
 	dcaenc_context result;
 
 	i = 0;
@@ -48,7 +48,12 @@ dcaenc_context dcaenc_create(int sample_rate, int channel_config,
 		return NULL;
 
 
-	frame_bits = div_round_up(approx_bitrate * 512, sample_rate);
+	if (flags & DCAENC_FLAG_28BIT)
+		useful_bitrate = div_round_up(approx_bitrate * 7, 8);
+	else
+		useful_bitrate = approx_bitrate;
+
+	frame_bits = div_round_up(useful_bitrate * 512, sample_rate);
 
 	bit_step = (flags & DCAENC_FLAG_28BIT) ? (7 * 32) : 32;
 	fir = (flags & DCAENC_FLAG_PERFECT_QMF) ? 0 : 1;
