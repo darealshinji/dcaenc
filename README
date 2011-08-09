@@ -1,0 +1,18 @@
+dcaenc is an open-source implementation of the DTS Coherent Acoustics codec.
+Only the core part of the encoder is implemented, because the public
+specification (ETSI TS 102 114 V1.2.1) is insufficient for implementing
+anything else.
+
+The project page currently does not exist.
+
+Installation
+============
+
+See the file INSTALL for the generic installation instructions.
+
+How to report bugs
+==================
+
+Bugs should be reported by email to patrakov@gmail.com, preferrably with a
+short (< 10 seconds) flac sample that demonstrates the problem, and a patch
+that fixes it.
