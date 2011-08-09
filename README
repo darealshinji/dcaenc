@@ -1,3 +1,6 @@
+Introduction
+============
+
 dcaenc is an open-source implementation of the DTS Coherent Acoustics codec.
 Only the core part of the encoder is implemented, because the public
 specification (ETSI TS 102 114 V1.2.1) is insufficient for implementing
@@ -8,7 +11,108 @@ The project page currently does not exist.
 Installation
 ============
 
+The dcaenc library has no external dependencies. The optional ALSA plugin
+that comes with it, obviously, depends on the ALSA library compiled with
+support for external plugins.
+
 See the file INSTALL for the generic installation instructions.
+
+Package contents
+================
+
+The dcaenc package contains the libdcaenc.so shared library, the corresponding
+dcaenc.h header, the dcaenc command line tool, and (optionally) the ALSA
+plugin.
+
+The library may be useful if you want to create DTS streams in your own
+application.
+
+The dcaenc command line utility converts multichannel wav files to DTS. The
+resulting DTS files can be written to an audio CD and played via a digital
+connection (SPDIF or HDMI) to a receiver, or, after changing the endianness,
+used as sound tracks for a DVD.
+
+The ALSA plugin (if it works at all - see below) may be useful for playing
+multichannel sound from arbitrary ALSA applications through an SPDIF link.
+This is needed because the SPDIF link cannot carry enough bits per second
+to transport the raw uncompressed 5.1 audio.
+
+The "alsa-plugins" package contains a similar plugin for on-the-fly AC3
+encoding.
+
+The plugin should not be used with HDMI connections, unless the video card
+imposes the same audio bandwidth limitations as the SPDIF link. The HDMI
+standard defines enough bandwidth so that the uncompressed 5.1 PCM stream
+fits even at 192 kHz sample rate.
+
+Note: the ALSA plugin is completely untested with the hardware DTS receivers.
+It has been verified, though, that, when used with a "file" slave plugin,
+it generates valid (from the viewpoint of ffmpeg) DTS files.
+
+Configuration
+=============
+
+The library itself has no configuration.
+
+To use the ALSA plugin, add the following snippet to your $HOME/.asoundrc
+file or to /etc/asound.conf:
+
+pcm.dca {
+	type dca
+	slave.pcm "spdif:CARD=Intel,AES0=6"
+}
+
+The card name can be found in the "aplay -L" output, and AES0=6 parameter
+marks the stream as non-audio (so that it doesn't get played by mistake - this
+would result in loud hiss that can damage loudspeakers).
+
+To direct mplayer output to the encoder:
+
+ mplayer -channels 6 -ao alsa:device=dca file.flac
+
+Known bug: the ALSA plugin doesn't report the supported sample rates correctly.
+So you may need to add one of the following flags to mplayer command line:
+
+ -af resample=44100
+ -af resample=48000
+
+Quality
+=======
+
+There are debates on the Internet about the relative quality of AC3 vs DTS.
+AC3 uses more advanced compression algorithms, DTS allows for higher bit rates.
+There were no blind tests comparing the output of the encoder with anything
+else. However, this encoder uses only the most basic compression techniques
+defined in the DTS specification, and thus cannot win any comparison with
+commercial DTS encoders.
+
+Compatibility
+=============
+
+The output of the encoder is known to be compatible with ffmpeg.
+
+Other destinations require a specific bitrate to be specified. To create a
+CD-compatible DTS file from a multichannel file (that needs to have the sample
+rate of 44100 Hz and either 16 or 32 bits per sample), run:
+
+ dcaenc input.wav output.dts 1411200
+
+To create a DVD-compatible track from a multichannel wav file that has the
+48 kHz sample rate:
+
+ dcaenc input.wav output.dts 1509000
+
+or for a half-rate output:
+
+ dcaenc input.wav output.dts 754500
+
+and then byte-swap the resulting output.dts file. Mux it with your MPEG2 video
+track using the "mplex" tool from the mjpeg-tools package.
+
+Compatibility with digital receivers has not been tested.
+
+The ALSA plugin should work in real time on any modern CPU. Here on Intel
+Core i5 @ 1.20 GHz it eats ~40% of a single core.
 
 How to report bugs
 ==================
