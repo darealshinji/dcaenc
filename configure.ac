@@ -13,8 +13,21 @@ LT_INIT([disable-static])
 
 # Checks for programs.
 AC_PROG_CC
+PKG_PROG_PKG_CONFIG 
 
 # Checks for libraries.
+AC_ARG_ENABLE([alsa],
+      AS_HELP_STRING([--disable-alsa], [disable building of ALSA plugin]))
+
+if test "x$enable_alsa" != "xno"; then
+	PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.11], [HAVE_ALSA=yes], [HAVE_ALSA=no])
+	AC_CHECK_LIB(asound, snd_pcm_extplug_create,,
+             [HAVE_ALSA=no], -ldl)
+	if test "x$enable_alsa" = "xyes" -a "x$HAVE_ALSA" = "xno"; then
+		AC_MSG_ERROR([ALSA libraries not found])
+	fi
+fi
+AM_CONDITIONAL(HAVE_ALSA, test "x$enable_alsa" != "xno" -a "x$HAVE_ALSA" = "xyes")
 
 # Checks for header files.
 AC_HEADER_STDC
