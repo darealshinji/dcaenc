@@ -65,6 +65,9 @@ dcaenc_context dcaenc_create(int sample_rate, int channel_config,
 	if (frame_bits > 131072)
 		return NULL;
 
+	if ((flags & DCAENC_FLAG_IEC_WRAP) && frame_bits > 16320)
+		return NULL;
+
 	result = (dcaenc_context)calloc(1, sizeof(struct dcaenc_context_s));
 	if (!result)
 		return NULL;
@@ -95,6 +98,8 @@ int dcaenc_input_size(dcaenc_context c)
 
 int dcaenc_output_size(dcaenc_context c)
 {
+	if (c->flags & DCAENC_FLAG_IEC_WRAP)
+		return 2048;
 	return c->frame_bits / ((c->flags & DCAENC_FLAG_28BIT) ? 7 : 8);
 }
 
@@ -452,6 +457,9 @@ static void init_quantization_noise(dcaenc_context c, int noise)
 	if (c->flags & DCAENC_FLAG_LFE)
 		c->consumed_bits += 72;
 
+	if (c->flags & DCAENC_FLAG_IEC_WRAP)
+		c->consumed_bits += (c->flags & DCAENC_FLAG_28BIT) ? 56 : 64;
+
 	/* attempt to guess the bit distribution based on the prevoius frame */
 	for (ch = 0; ch < c->fullband_channels; ch++) {
 		for (band = 0; band < 32; band++) {
@@ -525,6 +533,7 @@ static void bitstream_init(dcaenc_context c, uint8_t *output)
 
 static void bitstream_put(dcaenc_context c, uint32_t bits, int nbits)
 {
+	assert(bits < (1 << nbits));
 	int max_bits = (c->flags & DCAENC_FLAG_28BIT) ? 28 : 32;
 	c->wrote += nbits;
 	bits &= ~(0xffffffff << nbits);
@@ -546,10 +555,17 @@ static void bitstream_put(dcaenc_context c, uint32_t bits, int nbits)
 			b3 = (c->word >> 8) & 0xff;
 			b4 = (c->word) & 0xff;
 		}
-		*(c->output++) = b2;
-		*(c->output++) = b1;
-		*(c->output++) = b4;
-		*(c->output++) = b3;
+		if (c->flags & DCAENC_FLAG_BIGENDIAN) {
+			*(c->output++) = b1;
+			*(c->output++) = b2;
+			*(c->output++) = b3;
+			*(c->output++) = b4;
+		} else {
+			*(c->output++) = b2;
+			*(c->output++) = b1;
+			*(c->output++) = b4;
+			*(c->output++) = b3;
+		}
 		c->wbits = nbits + c->wbits - max_bits;
 		if (c->wbits)
 			c->word = (bits << (32 - c->wbits)) >> (32 - max_bits);
@@ -657,7 +673,7 @@ static void put_frame_header(dcaenc_context c, int normal)
 	bitstream_put(c, 15, 7);	//46
 
 	/* Primary frame byte size */
-	bitstream_put(c, dcaenc_output_size(c) - 1, 14);	//60
+	bitstream_put(c, c->frame_bits / 8 - 1, 14);	//60
 
 	/* Audio channel arrangement */
 	bitstream_put(c, c->channel_config, 6);	//66
@@ -719,8 +735,6 @@ static void put_frame_header(dcaenc_context c, int normal)
 
 	/* Dialog normalization: 0 dB */
 	bitstream_put(c, 0, 4);	//104
-
-//    assert(c->wrote == 104);
 }
 
 static void put_primary_audio_header(dcaenc_context c)
@@ -781,8 +795,6 @@ static void put_primary_audio_header(dcaenc_context c)
 
 	/* Scale factor adjustment index: not transmitted */
 	/* Audio header CRC check word: not transmitted */
-
-    assert(c->wrote == 111 + 45 * c->fullband_channels);
 }
 
 static void put_subframe_samples(dcaenc_context c, int ss, int band, int ch)
@@ -803,8 +815,13 @@ static void put_subframe_samples(dcaenc_context c, int ss, int band, int ch)
 		}
 	} else {
 		int i;
-		for (i = 0; i < 8; i++)
-			bitstream_put(c, c->quantized_samples[ss * 8 + i][band][ch], bit_consumption[c->abits[band][ch]] / 16);
+		for (i = 0; i < 8; i++) {
+			int bits = bit_consumption[c->abits[band][ch]] / 16;
+			int32_t mask = (1 << bits) - 1;
+			bitstream_put(c,
+				c->quantized_samples[ss * 8 + i][band][ch] & mask,
+				bits);
+		}
 	}
 }
 
@@ -822,8 +839,6 @@ static void put_subframe(dcaenc_context c)
 	for (ch = 0; ch < c->fullband_channels; ch++)
 		for (band = 0; band < 32; band++)
 			bitstream_put(c, 0, 1);	// 116 + 77 * c
-
-      assert(c->wrote == 116 + 77 * c->fullband_channels);
 
 	/* Prediction VQ addres: not transmitted */
 	/* Bit allocation index for each channel and subband */
@@ -852,7 +867,7 @@ static void put_subframe(dcaenc_context c)
 	/* LFE data: 8 samples and scalefactor */
 	if (c->flags & DCAENC_FLAG_LFE) {
 		for (ss = 0; ss < DCAENC_LFE_SAMPLES; ss++)
-			bitstream_put(c, dcaenc_quantize_value(c->downsampled_lfe[ss], c->lfe_quant), 8);
+			bitstream_put(c, dcaenc_quantize_value(c->downsampled_lfe[ss], c->lfe_quant) & 0xff, 8);
 		bitstream_put(c, c->lfe_nscale, 8);
 	}
 	/* Audio data: 2 subsubframes */
@@ -895,9 +910,27 @@ static int dcaenc_convert_frame(dcaenc_context c, const int32_t *input, uint8_t 
 {
 	int i;
 
-	bitstream_init(c, output);
-	for (i = 0; i < dcaenc_output_size(c); i++)
+	int l = dcaenc_output_size(c);
+	for (i = 0; i < l; i++)
 		output[i] = 0;
+
+	if (c->flags & DCAENC_FLAG_IEC_WRAP) {
+		if (c->flags & DCAENC_FLAG_BIGENDIAN) {
+			*(output++) = 0xf8; *(output++) = 0x72;
+			*(output++) = 0x4e; *(output++) = 0x1f;
+			*(output++) = 0x00; *(output++) = 0x0b;
+			*(output++) = c->frame_bits >> 8;
+			*(output++) = c->frame_bits & 0xff;
+		} else {
+			*(output++) = 0x72; *(output++) = 0xf8;
+			*(output++) = 0x1f; *(output++) = 0x4e;
+			*(output++) = 0x0b; *(output++) = 0x00;
+			*(output++) = c->frame_bits & 0xff;
+			*(output++) = c->frame_bits >> 8;
+		}
+	}
+
+	bitstream_init(c, output);
 	dcaenc_subband_transform(c, input);
 	if (c->flags & DCAENC_FLAG_LFE)
 		dcaenc_lfe_downsample(c, input);

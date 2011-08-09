@@ -29,6 +29,7 @@ typedef struct dcaenc_context_s *dcaenc_context;
 #define DCAENC_FLAG_BIGENDIAN 2
 #define DCAENC_FLAG_LFE 4
 #define DCAENC_FLAG_PERFECT_QMF 8
+#define DCAENC_FLAG_IEC_WRAP 16
 
 #define DCAENC_CHANNELS_MONO 0
 #define DCAENC_CHANNELS_DUAL_MONO 1
