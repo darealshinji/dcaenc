@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	    return 1;
 	}
 	while (wavfile_read_s32(f, data)) {
-		wrote = dcaenc_convert(c, data, output);
+		wrote = dcaenc_convert_s32(c, data, output);
 		fwrite(output, 1, wrote, outfile);
 	}
 	wrote = dcaenc_destroy(c, output);

@@ -102,7 +102,7 @@ static snd_pcm_sframes_t dcaplug_transfer(snd_pcm_extplug_t *ext,
         dcaplug->bufpos += size;
         
         if (dcaplug->bufpos == 512) {
-                dcaenc_convert(dcaplug->enc, dcaplug->pcm_buffer, (uint8_t*)dcaplug->dts_buffer);
+                dcaenc_convert_s32(dcaplug->enc, dcaplug->pcm_buffer, (uint8_t*)dcaplug->dts_buffer);
                 dcaplug->bufpos = 0;
         }
         
@@ -146,7 +146,7 @@ static int dcaplug_init(snd_pcm_extplug_t *ext)
         }
 
         /* Create a dummy frame of silence */
-        dcaenc_convert(dcaplug->enc, zero, (uint8_t*)dcaplug->dts_buffer);
+        dcaenc_convert_s32(dcaplug->enc, zero, (uint8_t*)dcaplug->dts_buffer);
         
         return 0;
         

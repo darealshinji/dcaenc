@@ -52,7 +52,7 @@ dcaenc_context dcaenc_create(int sample_rate, int channel_config, int approx_bit
 int dcaenc_bitrate(dcaenc_context c);
 int dcaenc_input_size(dcaenc_context c);
 int dcaenc_output_size(dcaenc_context c);
-int dcaenc_convert(dcaenc_context c, const int32_t *input, uint8_t *output);
+int dcaenc_convert_s32(dcaenc_context c, const int32_t *input, uint8_t *output);
 int dcaenc_destroy(dcaenc_context c, uint8_t *output);
 
 #endif

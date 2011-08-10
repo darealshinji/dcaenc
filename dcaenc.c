@@ -960,7 +960,7 @@ static int dcaenc_convert_frame(dcaenc_context c, const int32_t *input, uint8_t 
 	return dcaenc_output_size(c);
 }
 
-int dcaenc_convert(dcaenc_context c, const int32_t *input, uint8_t *output)
+int dcaenc_convert_s32(dcaenc_context c, const int32_t *input, uint8_t *output)
 {
 	return dcaenc_convert_frame(c, input, output, 1);
 }

@@ -1,5 +1,5 @@
 dcaenc_create
 dcaenc_input_size
 dcaenc_output_size
-dcaenc_convert
+dcaenc_convert_s32
 dcaenc_destroy
