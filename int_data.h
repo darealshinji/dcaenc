@@ -69,7 +69,7 @@ static const int bitstream_sfreq[9] = {
  * Fixme: will become invalid when Huffman codes are introduced.
  */
 static const int bit_consumption[27] = {
-	0, 28, 40, 48, 52, 60, 68, 76, 80, 96,
+	-8, 28, 40, 48, 52, 60, 68, 76, 80, 96,
 	112, 128, 144, 160, 176, 192, 208, 224, 240, 256,
 	272, 288, 304, 320, 336, 352, 368,
 };
