@@ -475,7 +475,7 @@ static void init_quantization_noise(dcaenc_context c, int noise)
 			c->abits[band][ch] = (snr_cb >= 1312) ? 26
 				: (snr_cb >= 222) ? (8 + mul32(snr_cb - 222, 69000000))
 				: (snr_cb >= 0) ? (2 + mul32(snr_cb, 106000000))
-				: (snr_cb >= -240) ? 1 : 0;
+				: 1;
 		}
 	}
 
@@ -598,9 +598,6 @@ static int32_t dcaenc_quantize_value(int32_t value, softfloat quant)
 
 static int32_t dcaenc_quantize(dcaenc_context c, int sample, int band, int ch)
 {
-	if (c->abits[band][ch] == 0)
-		return 0;
-
 	int32_t result = dcaenc_quantize_value(c->subband_samples[sample][band][ch],
 					       c->quant[band][ch]);
 
@@ -611,9 +608,6 @@ static int32_t dcaenc_quantize(dcaenc_context c, int sample, int band, int ch)
 
 static int dcaenc_calc_one_scale(int32_t peak_cb, int abits, softfloat *quant)
 {
-	if (abits == 0)
-		return 0;
-
 	assert(peak_cb <= 0);
 	assert(peak_cb >= -2047);
 	int32_t peak = cb_to_level[-peak_cb];
@@ -804,9 +798,6 @@ static void put_primary_audio_header(dcaenc_context c)
 
 static void put_subframe_samples(dcaenc_context c, int ss, int band, int ch)
 {
-	if (c->abits[band][ch] == 0)
-		return;
-
 	if (c->abits[band][ch] <= 7) {
 		int sum, i, j;
 		for (i = 0; i < 8; i += 4) {
@@ -854,14 +845,12 @@ static void put_subframe(dcaenc_context c)
 	/* Transition mode: none for each channel and subband */
 	for (ch = 0; ch < c->fullband_channels; ch++)
 		for (band = 0; band < 32; band++)
-			if (c->abits[band][ch] > 0)
-				bitstream_put(c, 0, 1);	/* according to Huffman codebook A4 */// 116 + 269 * c - e
+			bitstream_put(c, 0, 1);	/* according to Huffman codebook A4 */// 116 + 269 * c
 
 	/* Scale factors */
 	for (ch = 0; ch < c->fullband_channels; ch++)
 		for (band = 0; band < 32; band++)
-			if (c->abits[band][ch] > 0)
-				bitstream_put(c, c->nscale[band][ch], 7);	// 116 + 493 * c - 8 * e
+			bitstream_put(c, c->nscale[band][ch], 7);	// 116 + 493 * c
 
 	/* Joint subband scale factor codebook select: not transmitted */
 	/* Scale factors for joint subband coding: not transmitted */
