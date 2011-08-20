@@ -8,6 +8,13 @@ anything else.
 
 The project page currently does not exist.
 
+The latest code can be obtained from git:
+
+ git pull git://gitorious.org/dtsenc/dtsenc.git
+
+There are no formal releases yet - they will be made after reaching known
+compatibility with at least some hardware decoders.
+
 Installation
 ============
 
@@ -16,6 +23,12 @@ that comes with it, obviously, depends on the ALSA library compiled with
 support for external plugins.
 
 See the file INSTALL for the generic installation instructions.
+Quick summary:
+
+ autoreconf -f -i -v       # only if building from git
+ ./configure --prefix=/usr # with any other prefix, ALSA won't find the plugin
+ make
+ su -c 'make install'      # Or, on Ubuntu: sudo make install
 
 Package contents
 ================
@@ -89,9 +102,13 @@ commercial DTS encoders.
 Compatibility
 =============
 
-The output of the encoder is known to be compatible with ffmpeg.
+The output of the encoder is known to be compatible with ffmpeg. However,
+it is suspected to be invalid and produces incorrect sound output at least on
+the NAD T474 receiver. Because the author has no DTS-compatible hardware,
+there is no way to debug and eliminate this problem without external testers.
+Please email patrakov@gmail.com if you want to help.
 
-Other destinations require a specific bitrate to be specified. To create a
+Some destinations require a specific bitrate to be specified. To create a
 CD-compatible DTS file from a multichannel file (that needs to have the sample
 rate of 44100 Hz and either 16 or 32 bits per sample), run:
 
@@ -108,8 +125,6 @@ or for a half-rate output:
 
 and then byte-swap the resulting output.dts file. Mux it with your MPEG2 video
 track using the "mplex" tool from the mjpeg-tools package.
-
-Compatibility with digital receivers has not been tested.
 
 The ALSA plugin should work in real time on any modern CPU. Here on Intel
 Core i5 @ 1.20 GHz it eats ~40% of a single core.
