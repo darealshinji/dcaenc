@@ -10,7 +10,7 @@ The project page currently does not exist.
 
 The latest code can be obtained from git:
 
- git pull git://gitorious.org/dtsenc/dtsenc.git
+ git clone git://gitorious.org/dtsenc/dtsenc.git
 
 There are no formal releases yet - they will be made after reaching known
 compatibility with at least some hardware decoders.
