@@ -102,11 +102,15 @@ commercial DTS encoders.
 Compatibility
 =============
 
-The output of the encoder is known to be compatible with ffmpeg. However,
-it is suspected to be invalid and produces incorrect sound output at least on
-the NAD T474 receiver. Because the author has no DTS-compatible hardware,
-there is no way to debug and eliminate this problem without external testers.
-Please email patrakov@gmail.com if you want to help.
+The output of the encoder is known to be compatible with ffmpeg, libdca, and
+ArcSoft DTS decoder (the same engine as used in WinDVD). However, it is still
+suspected to be invalid as it produces incorrect sound output (reported as
+"bubbling sound") at least on the NAD T474 receiver. It is currently not known
+if the problem is with the bitstream itself or with the S/PDIF transport.
+
+Because the author has no DTS-compatible hardware, there is no way to debug
+and eliminate this problem without external testers. Please email
+patrakov@gmail.com if you have already built this software and want to help.
 
 Some destinations require a specific bitrate to be specified. To create a
 CD-compatible DTS file from a multichannel file (that needs to have the sample
