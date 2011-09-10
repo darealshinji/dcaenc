@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.65])
 AC_INIT([dcaenc],[1],[patrakov@gmail.com])
 AC_CONFIG_SRCDIR([dcaenc.c])
 AC_CONFIG_HEADERS([config.h])
