@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of dcaenc.
  *
  * Copyright (c) 2008-2011 Alexander E. Patrakov <patrakov@gmail.com>
@@ -17,7 +17,7 @@
  * License along with dcaenc; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
- 
+
 #include "dcaenc.h"
 #include <stdint.h>
 
@@ -69,13 +69,13 @@ static snd_pcm_sframes_t dcaplug_transfer(snd_pcm_extplug_t *ext,
         snd_pcm_uframes_t size)
 {
         struct dcaplug_info *dcaplug = (struct dcaplug_info*)ext;
-        
+
         /* Force samples to the buffer */
-        
+
         snd_pcm_uframes_t remaining = 512 - dcaplug->bufpos;
         if (size > remaining)
                 size = remaining;
-        
+
         snd_pcm_uframes_t i;
         int channel;
         int srcbufidx = ext->channels * dcaplug->bufpos;
@@ -86,7 +86,6 @@ static snd_pcm_sframes_t dcaplug_transfer(snd_pcm_extplug_t *ext,
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[1], i + src_offset, ext->format);
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[2], i + src_offset, ext->format);
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[3], i + src_offset, ext->format);
-                        
                 } else {
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[4], i + src_offset, ext->format);
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[0], i + src_offset, ext->format);
@@ -95,17 +94,17 @@ static snd_pcm_sframes_t dcaplug_transfer(snd_pcm_extplug_t *ext,
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[3], i + src_offset, ext->format);
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[5], i + src_offset, ext->format);
                 }
-                
+
                 put_s16(&dst_areas[0], i + dst_offset, dcaplug->dts_buffer[dstbufidx++]);
                 put_s16(&dst_areas[1], i + dst_offset, dcaplug->dts_buffer[dstbufidx++]);
         }
         dcaplug->bufpos += size;
-        
+
         if (dcaplug->bufpos == 512) {
                 dcaenc_convert_s32(dcaplug->enc, dcaplug->pcm_buffer, (uint8_t*)dcaplug->dts_buffer);
                 dcaplug->bufpos = 0;
         }
-        
+
         return size;
 }
 
@@ -113,12 +112,12 @@ static const int32_t zero[512 * 6];
 static int dcaplug_init(snd_pcm_extplug_t *ext)
 {
         struct dcaplug_info *dcaplug = (struct dcaplug_info*)ext;
-        
+
         if (ext->rate != 44100 && ext->rate != 48000) {
                 SNDERR("Wrong sample rate, must be 44100 or 48000 Hz");
                 return -EINVAL;
         }
-        
+
         if (ext->channels == 2) {
                 /* TODO: passthrough? */
                 SNDERR("Conversion from stereo to DTS is pointless");
@@ -134,12 +133,12 @@ static int dcaplug_init(snd_pcm_extplug_t *ext)
                 (ext->channels == 4) ? DCAENC_CHANNELS_2FRONT_2REAR : DCAENC_CHANNELS_3FRONT_2REAR,
                 32 * ext->rate, /* same as S16 stereo */
                 (ext->channels == 4) ? 0 : DCAENC_FLAG_LFE);
-        
+
         if (!dcaplug->enc) {
                 SNDERR("Failed to create DCA encoder");
                 return -ENOMEM;
         }
-        
+
         if (dcaenc_output_size(dcaplug->enc) != 2048) {
                 SNDERR("The dcaenc library is incompatible");
                 return -EINVAL;
@@ -147,9 +146,8 @@ static int dcaplug_init(snd_pcm_extplug_t *ext)
 
         /* Create a dummy frame of silence */
         dcaenc_convert_s32(dcaplug->enc, zero, (uint8_t*)dcaplug->dts_buffer);
-        
+
         return 0;
-        
 }
 
 static int dcaplug_close(snd_pcm_extplug_t *ext)
@@ -207,7 +205,7 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
         dcaplug->ext.name = "DTS Coherent Acoustics encoder";
         dcaplug->ext.callback = &dcaplug_callback;
         dcaplug->ext.private_data = dcaplug;
-        
+
         err = snd_pcm_extplug_create(&dcaplug->ext, name, root, slave, stream, mode);
         if (err < 0) {
                 dcaenc_destroy(dcaplug->enc, NULL);
@@ -217,11 +215,11 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
 
         static const int channels[2] = {4, 6};
         static const int formats[2] = {SND_PCM_FORMAT_S32, SND_PCM_FORMAT_S16};
-        
+
         snd_pcm_extplug_set_param_list(&dcaplug->ext, SND_PCM_EXTPLUG_HW_CHANNELS,
                 2, channels);
         snd_pcm_extplug_set_slave_param(&dcaplug->ext, SND_PCM_EXTPLUG_HW_CHANNELS, 2);
-        
+
         snd_pcm_extplug_set_param_list(&dcaplug->ext, SND_PCM_EXTPLUG_HW_FORMAT,
                 2, formats);
         snd_pcm_extplug_set_slave_param(&dcaplug->ext, SND_PCM_EXTPLUG_HW_FORMAT, SND_PCM_FORMAT_S16);
@@ -231,4 +229,3 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
 }
 
 SND_PCM_PLUGIN_SYMBOL(dca);
-
