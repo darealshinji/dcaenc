@@ -80,7 +80,7 @@ static snd_pcm_sframes_t dcaplug_transfer(snd_pcm_extplug_t *ext,
         int channel;
         int srcbufidx = ext->channels * dcaplug->bufpos;
         int dstbufidx = 2 * dcaplug->bufpos;
-        for (i = dcaplug->bufpos; i < dcaplug->bufpos + size; i++) {
+        for (i = 0; i < size; i++) {
                 if (ext->channels == 4) {
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[0], i + src_offset, ext->format);
                         dcaplug->pcm_buffer[srcbufidx++] = get_s32(&src_areas[1], i + src_offset, ext->format);
