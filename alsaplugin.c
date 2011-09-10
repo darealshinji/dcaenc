@@ -182,7 +182,7 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
                 const char *id;
                 if (snd_config_get_id(n, &id) < 0)
                         continue;
-                if (strcmp(id, "comment") == 0 || strcmp(id, "type") == 0)
+                if (strcmp(id, "comment") == 0 || strcmp(id, "type") == 0 || strcmp(id, "hint") == 0)
                         continue;
                 if (strcmp(id, "slave") == 0) {
                         slave = n;
