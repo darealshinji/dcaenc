@@ -21,6 +21,9 @@ plugindir = $(libdir)/alsa-lib
 libasound_module_pcm_dca_la_SOURCES = alsaplugin.c dcaenc.h
 libasound_module_pcm_dca_la_LIBADD = libdcaenc.la @ALSA_LIBS@
 libasound_module_pcm_dca_la_LDFLAGS = -no-undefined -avoid-version
+
+alsaconfdir = $(datadir)/alsa/pcm
+alsaconf_DATA = dca.conf
 endif
 
 dcaenc_SOURCES = main.c wavfile.c dcaenc.h wavfile.h
