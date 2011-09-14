@@ -6,14 +6,11 @@ Only the core part of the encoder is implemented, because the public
 specification (ETSI TS 102 114 V1.2.1) is insufficient for implementing
 anything else.
 
-The project page currently does not exist.
+The project page is at http://aepatrakov.narod2.ru/dcaenc/
 
 The latest code can be obtained from git:
 
  git clone git://gitorious.org/dtsenc/dtsenc.git
-
-There are no formal releases yet - they will be made after reaching known
-compatibility with at least some hardware decoders.
 
 Installation
 ============
@@ -261,7 +258,7 @@ channel-map = front-left,front-right,rear-left,rear-right,front-center,lfe
 priority = 3
 direction = output
 
-Later thay may be added to the default profile upstream. After restarting
+Later they may be added to the default profile upstream. After restarting
 PulseAudio, it will see an additional "DTS" output profile and allow you to
 select it in the volume control application such as pavucontrol or
 gnome-volume-control.
