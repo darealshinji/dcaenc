@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "config.h"
 #include "dcaenc.h"
 #include "wavfile.h"
 
@@ -40,8 +41,14 @@ int main(int argc, char *argv[])
 	DCAENC_CHANNELS_2FRONT_2REAR, 0, DCAENC_CHANNELS_3FRONT_2REAR };
 
 	if (argc != 4) {
-	    printf("Usage: dcaenc input.wav output.dts bits_per_second\n");
-	    return 1;
+	    if (argc == 2 && !strcmp(argv[1], "--version")) {
+	        printf(PACKAGE_NAME "-" PACKAGE_VERSION "\n");
+		printf(PACKAGE_URL "\n");
+		return 0;
+	    } else {
+	        printf("Usage: dcaenc input.wav output.dts bits_per_second\n");
+	        return 1;
+	    }
 	}
 	f = wavfile_open(argv[1]);
 	if (!f) {

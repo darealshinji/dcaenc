@@ -6,7 +6,7 @@ Only the core part of the encoder is implemented, because the public
 specification (ETSI TS 102 114 V1.2.1) is insufficient for implementing
 anything else.
 
-The project page is at http://aepatrakov.narod2.ru/dcaenc/
+The project page is at http://aepatrakov.narod.ru/dcaenc/
 
 The latest code can be obtained from git:
 
