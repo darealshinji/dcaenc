@@ -1,0 +1,12 @@
+The items below are not sorted in any order.
+
+ * Fix bugs.
+ * Use the standard getopt() interface for parsing command-line options.
+   Add options for all DCAENC_FLAG_* defines.
+ * Convert the encoder from fixed point back to floating point. This will
+   simplify the code.
+ * Convert the ALSA plugin from extplug to ioplug. This will fix the bug with
+   incorrect reporting of the supported sample rates.
+ * Implement the ADPCM part of the DTS specification. This will improve sound
+   quality.
+ * Add helper programs for use of the encoder with JACK or OSS4.
