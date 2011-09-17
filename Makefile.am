@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 AUTOMAKE_OPTIONS=foreign
-EXTRA_DIST = dcaenc.sym
+EXTRA_DIST = dcaenc.sym dca.conf
 
 bin_PROGRAMS = dcaenc
 noinst_PROGRAMS = gentables
