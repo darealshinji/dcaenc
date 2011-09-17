@@ -19,6 +19,8 @@ PKG_PROG_PKG_CONFIG
 AC_ARG_ENABLE([alsa],
       AS_HELP_STRING([--disable-alsa], [disable building of ALSA plugin]))
 
+ac_save_LIBS="$LIBS"
+
 if test "x$enable_alsa" != "xno"; then
 	PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.11], [HAVE_ALSA=yes], [HAVE_ALSA=no])
 	AC_CHECK_LIB(asound, snd_pcm_extplug_create,,
@@ -28,6 +30,7 @@ if test "x$enable_alsa" != "xno"; then
 	fi
 fi
 AM_CONDITIONAL(HAVE_ALSA, test "x$enable_alsa" != "xno" -a "x$HAVE_ALSA" = "xyes")
+LIBS="$ac_save_LIBS"
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -41,7 +44,9 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
+ac_save_LIBS="$LIBS"
 LT_LIB_M
+LIBS="$ac_save_LIBS"
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
