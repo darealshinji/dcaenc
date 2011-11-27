@@ -95,7 +95,7 @@ wavfile * wavfile_open(const char * filename)
 
     /* wChannels */
     v = (uint32_t)fmt[2] | ((uint32_t)fmt[3] << 8);
-    if (v != 1 && v != 2 && v != 4 && v !=6)
+    if (v != 1 && v != 2 && v != 4 && v != 5 && v !=6)
 	goto err3;
     result->channels = v;
     /* dwSamplesPerSec */
@@ -188,6 +188,13 @@ int wavfile_read_s32(wavfile * f, int32_t *samples)
 	case 4:
 	    for (ch = 0; ch < f->channels; ch++)
 		    *(samples++) = smpte_sample[ch];
+	    break;
+	case 5:
+	    *(samples++) = smpte_sample[2];
+	    *(samples++) = smpte_sample[0];
+	    *(samples++) = smpte_sample[1];
+	    *(samples++) = smpte_sample[3];
+	    *(samples++) = smpte_sample[4];
 	    break;
 	case 6:
 	    *(samples++) = smpte_sample[2];

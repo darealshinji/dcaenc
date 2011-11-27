@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 	int samples_total;
 	
 	static const int channel_map[6] = {DCAENC_CHANNELS_MONO, DCAENC_CHANNELS_STEREO, 0,
-	DCAENC_CHANNELS_2FRONT_2REAR, 0, DCAENC_CHANNELS_3FRONT_2REAR };
+	DCAENC_CHANNELS_2FRONT_2REAR, DCAENC_CHANNELS_3FRONT_2REAR, DCAENC_CHANNELS_3FRONT_2REAR };
 
 	if (argc != 4) {
 	    if (argc == 2 && !strcmp(argv[1], "--version")) {
