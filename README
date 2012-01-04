@@ -12,6 +12,31 @@ The latest code can be obtained from git:
 
  git clone git://gitorious.org/dtsenc/dtsenc.git
 
+Windows-specific notes
+======================
+
+There is a fork of dcaenc specially targetted at Windows users. You can get
+it from http://gitorious.org/~mulder/dtsenc/mulders-dtsenc . As compared to
+this version, that fork adds a Visual Studio project file, a progress indicator
+and support for Unicode file names on Windows. It also breaks Linux support.
+Still, the original dcaenc can be compiled for Windows, here is how.
+
+The recommended compiler for dcaenc on Windows is MinGW. Get it from
+http://sourceforge.net/projects/mingw/files/Installer/ . You may want to use
+either the mingw-get.exe utility directly (just copy it to c:\mingw\bin,
+install nothing else), or use a graphical installer. In the latter case,
+install just the C compiler.
+
+After installation, add c:\mingw\bin and c:\mingw\msys\1.0\bin to the Path
+environment variable (right-click My Computer -> Properties -> Advanced ->
+Environment Variables) if it is not already there. Then install the required
+MinGW components from the command prompt:
+
+ mingw-get install mingw32-base mingw32-autotools
+
+For autotools to work, you also have to copy or rename the
+c:\mingw\msys\1.0\etc\fstab.sample file to c:\mingw\msys\1.0\etc\fstab.
+
 Installation
 ============
 
@@ -20,25 +45,35 @@ that comes with it, obviously, depends on the ALSA library compiled with
 support for external plugins.
 
 See the file INSTALL for the generic installation instructions.
-Quick summary:
+Quick summary for UNIX-like systems:
 
  autoreconf -f -i -v       # only if building from git
  ./configure --prefix=/usr # with any other prefix, ALSA won't find the plugin
  make
  su -c 'make install'      # Or, on Ubuntu: sudo make install
 
+Quick summary for Windows:
+
+ bash
+ autoreconf -f -i -v       # only if building from git
+ ./configure MAKE=mingw32-make
+ mingw32-make
+
 Package contents
 ================
 
-The dcaenc package contains the libdcaenc.so shared library, the corresponding
-dcaenc.h header, the dcaenc command line tool, and (optionally) the ALSA
-plugin.
+On UNIX-like systems, the dcaenc package contains the libdcaenc.so shared
+library, the corresponding dcaenc.h header, the dcaenc command line tool,
+and (optionally, on Linux only) the ALSA plugin.
+
+On Windows, you only get the command-line tool, even if you use the forked
+version.
 
 The libdcaenc library
 =====================
 
 The library may be useful if you want to create DTS streams in your own
-application.
+UNIX application.
 
 To do so, you have to call the following functions:
 
