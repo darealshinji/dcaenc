@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "config.h"
 #include "dcaenc.h"
 #include "dcaenc_private.h"
 #include "int_data.h"
@@ -33,7 +34,7 @@
 dcaenc_context dcaenc_create(int sample_rate, int channel_config,
                              int approx_bitrate, int flags)
 {
-	int i, frame_bits, bit_step, fir, useful_bitrate;
+	int i, frame_bits, bit_step, fir, useful_bitrate, min_frame_bits;
 	dcaenc_context result;
 
 	i = 0;
@@ -60,7 +61,7 @@ dcaenc_context dcaenc_create(int sample_rate, int channel_config,
 	/* Round frame_bits up to the next permitted value */
 	frame_bits = round_up(frame_bits, bit_step);
 	
-	int min_frame_bits = 132 + (493 + 28 * 32) * channels_table[channel_config];
+	min_frame_bits = 132 + (493 + 28 * 32) * channels_table[channel_config];
 	if (flags & DCAENC_FLAG_LFE)
 		min_frame_bits += 72;
 
@@ -503,10 +504,10 @@ static int init_quantization_noise(dcaenc_context c, int noise)
 static void dcaenc_assign_bits(dcaenc_context c)
 {
 	/* Find the bounds where the binary search should work */
-	int low, high;
+	int low, high, down;
+	int used_abits = 0;
 	init_quantization_noise(c, c->worst_quantization_noise);
 	low = high = c->worst_quantization_noise;
-	int used_abits = 0;
 	if (c->consumed_bits > c->frame_bits) {
 		while (c->consumed_bits > c->frame_bits) {
 			assert(("Too low bitrate should have been rejected in dcaenc_create", used_abits != USED_1ABITS));
@@ -525,7 +526,6 @@ static void dcaenc_assign_bits(dcaenc_context c)
 	}
 
 	/* Now do a binary search between low and high to see what fits */
-	int down;
 	for (down = snr_fudge >> 1; down; down >>= 1) {
 		init_quantization_noise(c, high - down);
 		if (c->consumed_bits <= c->frame_bits)
@@ -557,8 +557,8 @@ static void bitstream_init(dcaenc_context c, uint8_t *output)
 
 static void bitstream_put(dcaenc_context c, uint32_t bits, int nbits)
 {
-	assert(bits < (1 << nbits));
 	int max_bits = (c->flags & DCAENC_FLAG_28BIT) ? 28 : 32;
+	assert(bits < (1 << nbits));
 	c->wrote += nbits;
 	bits &= ~(0xffffffff << nbits);
 	if (nbits + c->wbits >= max_bits) {
@@ -627,12 +627,15 @@ static int32_t dcaenc_quantize(dcaenc_context c, int sample, int band, int ch)
 
 static int dcaenc_calc_one_scale(int32_t peak_cb, int abits, softfloat *quant)
 {
-	assert(peak_cb <= 0);
-	assert(peak_cb >= -2047);
-	int32_t peak = cb_to_level[-peak_cb];
+	int32_t peak;
 	int our_nscale, try_remove;
 	softfloat our_quant;
+
+	assert(peak_cb <= 0);
+	assert(peak_cb >= -2047);
+
 	our_nscale = 127;
+	peak = cb_to_level[-peak_cb];
 
 	for (try_remove = 64; try_remove > 0; try_remove >>= 1) {
 		if (scalefactor_inv[our_nscale - try_remove].e + stepsize_inv[abits].e <= 17)

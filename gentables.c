@@ -24,6 +24,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
+#include "config.h"
 #include "int_data.h"
 #include "float_data.h"
 
@@ -218,6 +219,7 @@ void print_subband_fir(void)
 int main(int argc, char *argv[])
 {
 	printf("/* GENERATED FILE, DO NOT EDIT */\n\n");
+	printf("#include \"config.h\"\n");
 	printf("#include \"math_tables.h\"\n\n");
 	print_lfe_fir();
 	print_subband_fir();
