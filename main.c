@@ -20,11 +20,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "config.h"
 #include "dcaenc.h"
 #include "wavfile.h"
-
-extern const int32_t prototype_filter[512];
 
 int main(int argc, char *argv[])
 {
