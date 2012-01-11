@@ -91,9 +91,10 @@ The sample rate must be one of the following values: 32000, 44100, 48000 or
 those divided by 2 or 4. The channel configuration is one of the
 DCAENC_CHANNELS_* defines listed in the dcaenc.h header. Note that values
 greater than DCAENC_CHANNELS_3FRONT_2REAR always return an error now because
-their encoding requires the Xch extension that is undocumented and thus not
-implemented. Only non-LFE channels have to be specified here. The approximate
-bitrate is specified in bits per second and may be rounded up by the library.
+their encoding requires the XCH/XXCH extensions that became documented only in
+September 2011 and thus were not implemented. Only non-LFE channels have to be
+specified here. The approximate bitrate is specified in bits per second and
+may be rounded up by the library.
 
 The flags parameter should be a logical OR of zero or more of the
 DCAENC_FLAG_* defines. Their meanings:
