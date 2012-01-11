@@ -1,7 +1,7 @@
 /* 
  * This file is part of dcaenc.
  *
- * Copyright (c) 2008-2011 Alexander E. Patrakov <patrakov@gmail.com>
+ * Copyright (c) 2008-2012 Alexander E. Patrakov <patrakov@gmail.com>
  *
  * dcaenc is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

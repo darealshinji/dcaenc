@@ -1,7 +1,7 @@
 /* 
  * This file is part of dcaenc.
  *
- * Copyright (c) 2008-2011 Alexander E. Patrakov <patrakov@gmail.com>
+ * Copyright (c) 2008-2012 Alexander E. Patrakov <patrakov@gmail.com>
  *
  * dcaenc is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,11 +41,15 @@ int main(int argc, char *argv[])
 
 	if (argc != 4) {
 	    if (argc == 2 && !strcmp(argv[1], "--version")) {
-	        printf(PACKAGE_NAME "-" PACKAGE_VERSION "\n");
-		printf(PACKAGE_URL "\n");
+	        fprintf(stderr, PACKAGE_NAME "-" PACKAGE_VERSION "\n");
+		fprintf(stderr, PACKAGE_URL "\n\n");
+		fprintf(stderr, "Copyrignt (c) 2008-2012 Alexander E. Patrakov <patrakov@gmail.com>\n");
+		fprintf(stderr, "License: GNU LGPL version 2.1 or later <http://gnu.org/licenses/lgpl.html>\n");
+		fprintf(stderr, "This is free software: you are free to change and redistribute it.\n");
+		fprintf(stderr, "There is NO WARRANTY, to the extent permitted by law.\n");
 		return 0;
 	    } else {
-	        printf("Usage: dcaenc input.wav output.dts bits_per_second\n");
+	        fprintf(stderr, "Usage: dcaenc input.wav output.dts bits_per_second\n");
 	        return 1;
 	    }
 	}
