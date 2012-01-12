@@ -31,6 +31,17 @@
 #define div_round_up(a, b) (((a) + (b) - 1) / (b))
 #define round_up(a, b) ((((a) + (b) - 1) / (b)) * (b))
 
+int dcaenc_channel_config_to_count(int channel_config)
+{
+	if (channel_config > DCAENC_CHANNELS_3FRONT_2REAR)
+		return -1;
+
+	if (channel_config < 0)
+		return -1;
+
+	return channels_table[channel_config];
+}
+
 dcaenc_context dcaenc_create(int sample_rate, int channel_config,
                              int approx_bitrate, int flags)
 {
@@ -46,6 +57,11 @@ dcaenc_context dcaenc_create(int sample_rate, int channel_config,
 	if (approx_bitrate < 32000)
 		return NULL;
 	if (approx_bitrate > 6144000)
+		return NULL;
+
+	if (channel_config < 0)
+		return NULL;
+	if (channel_config > DCAENC_CHANNELS_3FRONT_2REAR)
 		return NULL;
 
 

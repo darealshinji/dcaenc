@@ -127,6 +127,11 @@ frame and pads the frame with zeroes to achieve the same bitrate as a stereo
 On any error, dcaenc_create() returns NULL. There is no way to find out the
 reason for the error.
 
+int dcaenc_channel_config_to_count(int channel_config);
+
+Returns the number of channels used in a given channel configuration, or -1
+if the channel configuration is invalid or unsupported.
+
 int dcaenc_bitrate(dcaenc_context c);
 
 Returns the actual bitrate that is used by the library.

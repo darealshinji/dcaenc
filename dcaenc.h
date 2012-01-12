@@ -48,6 +48,8 @@ typedef struct dcaenc_context_s *dcaenc_context;
 #define DCAENC_CHANNELS_4FRONT_4REAR 14
 #define DCAENC_CHANNELS_5FRONT_3REAR 15
 
+int dcaenc_channel_config_to_count(int channel_config);
+
 dcaenc_context dcaenc_create(int sample_rate, int channel_config, int approx_bitrate, int flags);
 int dcaenc_bitrate(dcaenc_context c);
 int dcaenc_input_size(dcaenc_context c);
