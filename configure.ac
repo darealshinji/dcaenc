@@ -48,5 +48,5 @@ ac_save_LIBS="$LIBS"
 LT_LIB_M
 LIBS="$ac_save_LIBS"
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile dcaenc.pc])
 AC_OUTPUT

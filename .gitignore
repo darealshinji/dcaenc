@@ -12,6 +12,7 @@ dcaenc
 gentables
 Makefile
 Makefile.in
+dcaenc.pc
 aclocal.m4
 config.guess
 config.h

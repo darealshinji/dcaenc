@@ -3,6 +3,9 @@ ACLOCAL_AMFLAGS = -I m4
 AUTOMAKE_OPTIONS=foreign
 EXTRA_DIST = dcaenc.sym dca.conf
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = dcaenc.pc
+
 bin_PROGRAMS = dcaenc
 noinst_PROGRAMS = gentables
 lib_LTLIBRARIES = libdcaenc.la
