@@ -1,0 +1,67 @@
+These bugs and limitations are known. Please don't report them again. Better,
+send a patch (not a git merge request!) to patrakov@gmail.com.
+
+ * Low bitrates (such as 256 kbps for 48 kHz stereo files) are rejected.
+   Fixing this would require adding support for less than 32 active subbands.
+
+ * High bitrates (i.e. anything above 1536 kbps for 48 kHz files) are
+   not rejected, even though the version 1.3.1 of the DTS specification
+   disallows them for DTS Core streams. Such streams are valid according to
+   earlier versions of this specification. Since there may be users depending
+   on this functionality, this is scheduled to be dealt with at version 3.
+   Depending on the user feedback, the functionality of encoding at
+   higher-than-16bit-pcm-stereo bitrates will be either removed or hidden
+   behind a dcaenc_create() flag.
+
+ * The quality is not as high as it can be at a given bitrate. To fix this,
+   one has to add ADPCM, channel coupling, vector quantization, transient
+   detection and huffman coding. That's a lot of work, but at SPDIF bitrates
+   nobody will notice the improvement.
+
+ * More than 5.1 channels, or sample rates more than 48 kHz are not supported.
+   To fix this, one has to implement the whole lot of new techniques described
+   in the version 1.3.1 of the DTS specification.
+
+ * The psychoacoustical model wants to remove all frequencies above 16 kHz if
+   there is anything else in the incoming audio. The reason looks quite valid:
+   there is no filter in the human ear model that responds to such frequencies.
+   These frequencies are present in the output only at 3 levels per sample
+   (even though the psychoacoustical model says they should be discarded
+   completely), just because encoding with less than 32 active subbands is not
+   implemented yet. However, the future addition of high sample rate support
+   would require a psychoacoustical model that doesn't throw these frequencies
+   out completely.
+
+ * Command line syntax is not compatible with the one supported by Lord
+   Mulder's fork. His changes related to the command line syntax have to be
+   separated from the rest of changes, amended to not depend on floating point
+   (and still allow 1411.2 kbps) and applied.
+
+ * There are no command-line parameters to specify endianness of the resulting
+   stream. See above.
+
+ * Multichannel wav files are not parsed properly. E.g., the channel mask is
+   not used at all, and floating-point files are mistaken for 32-bit ones.
+   Someone just has to implement this. Using a library is not really an option,
+   as neither sndfile nor audiofile libraries export the channel mask.
+
+ * It can be argued that, due to the 4GB length limitation, multichannel wav
+   files are not a suitable input format: at 5.1, this means the two-hour
+   length limit with 16-bit samples, or just one hour with 32-bit samples.
+   Under Windows, professional encoders are fed with 6 mono wav files, not
+   with one 6-channel file. Again, someone has to implement this.
+
+ * Attempts to open the ALSA plugin with incorrect sample rates are not
+   rejected. This is because the "extplug" framework doesn't allow this.
+   Either the functionality has to be added at the alsa-lib side, or this
+   plugin needs to be rewritten using "ioplug" (even though this means a lot
+   of boilerplate code).
+
+ * ALSA plugin adds 512 more samples (10 ms) of latency than it should.
+   Probably fixable by switching to ioplug.
+
+ * Video player applications don't take the latency added by the ALSA plugin
+   into account when synchronizing audio with video. ALSA bug (no way to export
+   the required information), not fixable within dcaenc. Anyway, it's just
+   30 ms.
+
