@@ -48,9 +48,22 @@ See the file INSTALL for the generic installation instructions.
 Quick summary for UNIX-like systems:
 
  autoreconf -f -i -v       # only if building from git
- ./configure --prefix=/usr # with any other prefix, ALSA won't find the plugin
+ ./configure --prefix=/usr --libdir=??? # see below
  make
  su -c 'make install'      # Or, on Ubuntu: sudo make install
+
+The --libdir parameter is distribution- and architecture-specific, thus, the
+default (/usr/lib) may be wrong for your system. This parameter influences
+the shared library and ALSA plugin location. If you specify this parameter
+incorrectly, ALSA will not find the plugin. You can verify that the value is
+correct by looking if there are already any ALSA plugins for the same
+architecture in $libdir/alsa-lib. Here are some values to consider:
+
+ Most 32-bit x86 linux systems: /usr/lib
+ Most x86-64 linux systems: /usr/lib or /usr/lib64
+ 32-bit libraries on most x86-64 linux systems: /usr/lib or /usr/lib32
+ x86 Debian or Ubuntu (new versions): /usr/lib/i386-linux-gnu
+ x86-64 Debian or Ubuntu (new versions): /usr/lib/x86_64-linux-gnu
 
 Quick summary for Windows:
 
@@ -94,7 +107,7 @@ greater than DCAENC_CHANNELS_3FRONT_2REAR always return an error now because
 their encoding requires the XCH/XXCH extensions that became documented only in
 September 2011 and thus were not implemented. Only non-LFE channels have to be
 specified here. The approximate bitrate is specified in bits per second and
-may be rounded up by the library.
+may be rounded slightly up or down by the library.
 
 The flags parameter should be a logical OR of zero or more of the
 DCAENC_FLAG_* defines. Their meanings:
@@ -173,6 +186,15 @@ with the psychoacoustical model used by the library:
 DCAENC_CHANNELS_DUAL_MONO: A, B
 DCAENC_CHANNELS_STEREO_SUMDIFF: left+right, left-right
 DCAENC_CHANNELS_STEREO_TOTAL: left total, right total
+
+Unfortunately, there is currently no API to query the order of channels by the
+channel layout. This is because it is unclear what functionality related to
+channel mapping should be exposed. E.g., should speaker IDs compatible
+with ksmedia.h (as used in Windows and in WAVEFORMATEXTENSIBLE wav files) be
+used, even though a mapping between these speaker IDs and the positions used
+in the DTS specification is in some cases only approximate (e.g., there is no
+"Surround Left 2" speaker in ksmedia.h). Please mail your suggestions
+regarding this API to patrakov@gmail.com.
 
 dcaenc_convert_s32() returns the number of bytes written to the output buffer.
 Right now, it is always the same as returned by dcaenc_output_size(), but
@@ -261,7 +283,11 @@ a snippet similar to the following:
 
 The card name can be found in the "aplay -L" output, and AES0=6 parameter
 marks the stream as non-audio (so that it doesn't get played by mistake --
-this would result in loud hiss that can damage loudspeakers).
+this would result in loud hiss that can damage loudspeakers). Note, however,
+that there is no known non-artificial use case for this. If you have a video
+card that advertises its audio portion as the "hdmi" ALSA device, but still
+has the same format limitations as SPDIF, or if you have any other reason to
+define your own PCM, please send an email to patrakov@gmail.com.
 
 Unlike the AC3 encoder, there are no other configuration parameters. This is
 because it does not make sense to have them. The hard-coded settings (same
@@ -298,6 +324,11 @@ device-strings = dca:%f
 channel-map = front-left,front-right,rear-left,rear-right,front-center,lfe
 priority = 3
 direction = output
+
+Debian and Ubuntu have a patched version of pulseaudio that uses the
+/usr/share/pulseaudio/alsa-mixer/profile-sets/extra-hdmi.conf file instead
+for Intel and NVidia sound cards. If that file exists, add the above lines
+there, too.
 
 Later they may be added to the default profile upstream. After restarting
 PulseAudio, it will see an additional "DTS" output profile and allow you to
