@@ -1,2 +1,8 @@
+dcaenc-2: 2012-01-28
+	* Minor cleanups
+	* Support for 5.0 channel encoding
+	* Fixed infinite loop on too-high bitrates
+	* Fixed buffer overflow on attempts to encode a 7.1 file
+
 dcaenc-1: 2011-09-17
 	* Initial release.
