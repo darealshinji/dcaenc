@@ -1,10 +1,10 @@
 Introduction
 ============
 
-dcaenc is an open-source implementation of the DTS Coherent Acoustics codec.
-Only the core part of the encoder is implemented, because the public
-specification (ETSI TS 102 114 V1.2.1) is insufficient for implementing
-anything else.
+dcaenc is an open-source implementation of the DTS Coherent Acoustics
+lossy audio codec. Only the core part of the encoder is implemented,
+even though the full specification (ETSI TS 102 114 V1.3.1) is available
+for download.
 
 The project page is at http://aepatrakov.narod.ru/dcaenc/
 
@@ -256,10 +256,23 @@ link cannot carry enough bits per second to transport the raw uncompressed
 The "alsa-plugins" package contains a similar plugin for on-the-fly AC3
 encoding.
 
-The plugin should not be used with HDMI connections, unless the video card
-imposes the same audio bandwidth limitations as the SPDIF link. The HDMI
-standard defines enough bandwidth so that the uncompressed 5.1 PCM stream
-fits even at 192 kHz sample rate.
+The plugin should normally not be used with HDMI connections, because the
+HDMI standard defines enough bandwidth so that the uncompressed 5.1 PCM
+stream fits even at 192 kHz sample rate. So, attempting to encode that into
+DTS in the majority of cases is only a waste of CPU time and sound quality.
+There are, however, at least two valid use cases.
+
+1. Radeon HD 6xxx video cards with open-source driver do not support more
+   than two channels of PCM audio over HDMI. Encoding the output to DTS
+   provides a useful workaround to the lack of multichannel capability in
+   the driver.
+
+2. Some soundbars are supposed to get the audio signal from the TV via the
+   optical cable, while the TV itself is connected to the computer using
+   HDMI.
+
+If you know another valid use case, please send an e-mail to
+patrakov@gmail.com.
 
 The ALSA plugin should work in real time on any modern CPU. Here on Intel
 Core i5 @ 1.20 GHz (i.e. in powersaving mode) it eats ~40% of a single core.
@@ -271,28 +284,22 @@ file or to /etc/asound.conf:
 
 It will create an additional ALSA device for each of your sound cards that
 have an SPDIF output. The name of the device will be similar to
-"dca:CARD=Intel,DEV=0", or, for the default card, simply "dca".
+"dca:CARD=Intel,DEV=0", or, for the default card, simply "dca". There are
+also devices that encode to HDMI outputs, they have names like
+"dcahdmi:CARD=Intel,DEV=0".
 
-If you want to encode DTS and send it to something that is not SPDIF, add
-a snippet similar to the following:
+If you want to encode DTS and send it to something that is not SPDIF or HDMI,
+add a snippet similar to the following:
 
- pcm.dcahdmi {
+ pcm.dcacustom {
      type dca
-     slave.pcm "hdmi:CARD=Intel,DEV=0,AES0=6"
+     slave.pcm "custompcm"
  }
 
-The card name can be found in the "aplay -L" output, and AES0=6 parameter
-marks the stream as non-audio (so that it doesn't get played by mistake --
-this would result in loud hiss that can damage loudspeakers). Note, however,
-that there is no known non-artificial use case for this. If you have a video
-card that advertises its audio portion as the "hdmi" ALSA device, but still
-has the same format limitations as SPDIF, or if you have any other reason to
-define your own PCM, please send an email to patrakov@gmail.com.
-
-Unlike the AC3 encoder, there are no other configuration parameters. This is
-because it does not make sense to have them. The hard-coded settings (same
-bitrate as stereo PCM, all bits used) provide the best possible quality and
-should work for everyone.
+Unlike the AC3 encoder, there are no configuration parameters. This is because
+it does not make sense to have them. The hard-coded settings (same bitrate as
+stereo PCM, all bits used) provide the best possible quality and should work
+for everyone.
 
 To direct mplayer output to the default card via the encoder:
 
@@ -300,13 +307,14 @@ To direct mplayer output to the default card via the encoder:
 
 It is not possible to use dmix on top of the encoder. This is a limitation
 of dmix: it only works on direct hardware devices providing mmap, and the
-dca plugin is not a hardware device and does not provide mmap. Please use
-PulseAudio instead.
+dca plugin is not a hardware device and provides (non-working) mmap only due
+to what seems to be at least partially an ALSA bug. Please use PulseAudio
+instead.
 
-Known bug: the ALSA plugin doesn't report the supported sample rates correctly.
-Fixing this requires rewriting the plugin from the extplug infrastructure to
-ioplug. So you may need to add one of the following flags to mplayer command
-line:
+Known bug: the ALSA plugin doesn't report the supported sample rates correctly
+and pretends to support mmap. Fixing this requires rewriting the plugin from
+the extplug infrastructure to ioplug, or talking to ALSA developers. So you
+may need to add one of the following flags to mplayer command line:
 
  -af resample=44100
  -af resample=48000
@@ -319,31 +327,43 @@ to the end of the /usr/share/pulseaudio/alsa-mixer/profile-sets/default.conf
 file:
 
 [Mapping iec958-dts-surround-51]
-description = DTS
 device-strings = dca:%f
 channel-map = front-left,front-right,rear-left,rear-right,front-center,lfe
+paths-output = iec958-stereo-output
 priority = 3
 direction = output
 
-Debian and Ubuntu have a patched version of pulseaudio that uses the
+[Mapping hdmi-dts-surround-51]
+device-strings = dcahdmi:%f
+channel-map = front-left,front-right,rear-left,rear-right,front-center,lfe
+paths-output = hdmi-output-0
+priority = 1
+direction = output
+
+Newer and/or patched versions of PulseAudio use the
 /usr/share/pulseaudio/alsa-mixer/profile-sets/extra-hdmi.conf file instead
 for Intel and NVidia sound cards. If that file exists, add the above lines
-there, too.
+there, too, adjusting if needed for multiple HDMI outputs.
 
-Later they may be added to the default profile upstream. After restarting
-PulseAudio, it will see an additional "DTS" output profile and allow you to
-select it in the volume control application such as pavucontrol or
-gnome-volume-control.
+Note that the iec958-dts-surround-51 part of the above is already provided
+by PulseAudio 3.0 or later.
+
+After restarting PulseAudio, it will see additional output profiles having
+"DTS" in their names and will allow you to select them in the volume control
+application such as pavucontrol or gnome-volume-control.
 
 Compatibility
 =============
 
-The author has no DTS-capable receiver and tests the encoder only by decoding
-its output with ffmpeg, libdca or ArcSoft DTS decoder (the same engine as
-used in WinDVD).
+The author has an LG 47LM640T TV that can decode DTS on HDMI inputs. It works.
+He also tests the encoder by decoding its output with ffmpeg, libdca or
+ArcSoft DTS decoder (the same engine as used in WinDVD).
 
-The ALSA plugin has been tested and found to work with the following receivers
-by other people:
+It is not known whether the LG fix broke any other receiver. New test reports
+are appreciated. Please send them to patrakov@gmail.com.
+
+The old version of the ALSA plugin has been tested and found to work with the
+following receivers by other people:
 
  Logitech Z5500
  JVC TH-A25
@@ -351,8 +371,9 @@ by other people:
 
 Some receivers (including JVC TH-A25) mute their outputs when receiving full
 32-bit DTS stream (as generated by the ALSA plugin) over SPDIF with AES0=6
-(the default for the "dca" family of ALSA devices). To overcome this problem,
-add the following line to the end of .asoundrc:
+(the default for the "dca" and "dcahdmi" families of ALSA devices). To
+overcome this problem (if it is still reproducible after the LG fix), add the
+following line to the end of .asoundrc:
 
  defaults.pcm.dca.aes0 0x04
 
