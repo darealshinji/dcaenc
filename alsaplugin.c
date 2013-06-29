@@ -131,8 +131,8 @@ static int dcaplug_init(snd_pcm_extplug_t *ext)
 
         dcaplug->enc = dcaenc_create(ext->rate,
                 (ext->channels == 4) ? DCAENC_CHANNELS_2FRONT_2REAR : DCAENC_CHANNELS_3FRONT_2REAR,
-                32 * ext->rate, /* same as S16 stereo */
-                (ext->channels == 4) ? 0 : DCAENC_FLAG_LFE);
+                ext->rate * 255 / 8, /* same as S16 stereo */
+                ((ext->channels == 4) ? 0 : DCAENC_FLAG_LFE) | DCAENC_FLAG_IEC_WRAP);
 
         if (!dcaplug->enc) {
                 SNDERR("Failed to create DCA encoder");
