@@ -384,6 +384,10 @@ the lowest possible volume, and this is why it is not the default.
 
 Similar settings exist for AES1, AES2 and AES3 SPDIF parameters.
 
+Known incompatible receivers that just don't work with this plugin:
+
+ SONY STR-K750P
+
 Quality
 =======
 
