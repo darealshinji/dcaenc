@@ -26,6 +26,7 @@
 
 struct dcaplug_info {
         snd_pcm_extplug_t ext;
+        int iec61937;
         dcaenc_context enc;
         int32_t pcm_buffer[6 * 512];
         int16_t dts_buffer[2 * 512];
@@ -129,10 +130,17 @@ static int dcaplug_init(snd_pcm_extplug_t *ext)
                 return -EINVAL;
         }
 
-        dcaplug->enc = dcaenc_create(ext->rate,
-                (ext->channels == 4) ? DCAENC_CHANNELS_2FRONT_2REAR : DCAENC_CHANNELS_3FRONT_2REAR,
-                ext->rate * 255 / 8, /* same as S16 stereo */
-                ((ext->channels == 4) ? 0 : DCAENC_FLAG_LFE) | DCAENC_FLAG_IEC_WRAP);
+        if (dcaplug->iec61937) {
+                dcaplug->enc = dcaenc_create(ext->rate,
+                        (ext->channels == 4) ? DCAENC_CHANNELS_2FRONT_2REAR : DCAENC_CHANNELS_3FRONT_2REAR,
+                        ext->rate * 503 / 16, /* same as DVD */
+                        ((ext->channels == 4) ? 0 : DCAENC_FLAG_LFE) | DCAENC_FLAG_IEC_WRAP);
+        } else {
+                dcaplug->enc = dcaenc_create(ext->rate,
+                        (ext->channels == 4) ? DCAENC_CHANNELS_2FRONT_2REAR : DCAENC_CHANNELS_3FRONT_2REAR,
+                        ext->rate * 32,       /* same as S16 stereo on a CD */
+                        (ext->channels == 4) ? 0 : DCAENC_FLAG_LFE);
+        }
 
         if (!dcaplug->enc) {
                 SNDERR("Failed to create DCA encoder");
@@ -170,13 +178,14 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
 {
         snd_config_iterator_t i, next;
         snd_config_t *slave = NULL;
+        int iec61937 = 0;
         struct dcaplug_info *dcaplug;
         int err;
 
         if (stream != SND_PCM_STREAM_PLAYBACK) {
-		SNDERR("dca is only for playback");
-		return -EINVAL;
-	}
+                SNDERR("dca is only for playback");
+                return -EINVAL;
+        }
         snd_config_for_each(i, next, conf) {
                 snd_config_t *n = snd_config_iterator_entry(i);
                 const char *id;
@@ -186,6 +195,14 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
                         continue;
                 if (strcmp(id, "slave") == 0) {
                         slave = n;
+                        continue;
+                }
+                if (strcmp(id, "iec61937") == 0) {
+                        if ((err = snd_config_get_bool(n)) < 0) {
+                                SNDERR("Invalid value for %s", id);
+                                return -EINVAL;
+                        }
+                        iec61937 = err;
                         continue;
                 }
                 SNDERR("Unknown field %s", id);
@@ -205,6 +222,7 @@ SND_PCM_PLUGIN_DEFINE_FUNC(dca)
         dcaplug->ext.name = "DTS Coherent Acoustics encoder";
         dcaplug->ext.callback = &dcaplug_callback;
         dcaplug->ext.private_data = dcaplug;
+        dcaplug->iec61937 = iec61937;
 
         err = snd_pcm_extplug_create(&dcaplug->ext, name, root, slave, stream, mode);
         if (err < 0) {
